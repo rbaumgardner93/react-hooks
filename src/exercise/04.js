@@ -2,16 +2,12 @@
 // http://localhost:3000/isolated/exercise/04.js
 
 import * as React from 'react'
+import { useLocalStorageState } from "../utils";
+
+const INITIAL_STATE = Array(9).fill(null);
 
 function Board() {
-  const [squares, setSquares] = React.useState(
-	  () =>
-		JSON.parse(window.localStorage.getItem('squares')) || Array(9).fill(null)
-  );
-
-  React.useEffect(() => {
-	  window.localStorage.setItem('squares', JSON.stringify(squares))
-  }, [squares])
+  const [squares, setSquares] = useLocalStorageState('squares', INITIAL_STATE );
 
   const nextValue = calculateNextValue(squares);
   const winner = calculateWinner(squares);
@@ -28,7 +24,7 @@ function Board() {
   }
 
   function restart() {
-    setSquares(Array(9).fill(null));
+    setSquares(INITIAL_STATE);
   }
 
   function renderSquare(i) {
