@@ -4,6 +4,27 @@
 import * as React from 'react'
 import {PokemonForm, fetchPokemon, PokemonInfoFallback, PokemonDataView } from '../pokemon'
 
+class ErrorBoundary extends React.Component {
+	constructor(props) {
+		super(props);
+		this.state = { error: null }
+	}
+
+	static getDerivedStateFromError(error) {
+		// update state so the next render will show the fallback UI
+		return { error }
+	}
+
+	render() {
+		const { error } = this.state;
+		if (error) {
+			return <this.props.FallbackComponent error={error} />
+		}
+
+		return this.props.children;
+	}
+}
+
 function PokemonInfo({pokemonName}) {
   const [ pokemon, setPokemon ] = React.useState(null);
   const [ error, setError ] = React.useState(null)
@@ -36,14 +57,18 @@ function PokemonInfo({pokemonName}) {
 	} else if (status === "resolved") {
 		return <PokemonDataView pokemon={pokemon} />
 	} else if (status === "rejected") {
-		return (
-			<div role="alert">
-				There was an error: <pre style={{ whiteSpace: 'normal' }}>{error.message}</pre>
-			</div>
-		)
+		throw error;
 	} else {
 		throw new Error("This should not be possible")
 	}
+}
+
+function ErrorFallback( { error } ) {
+	return (
+		<div role="alert">
+			There was an error: <pre style={{ whiteSpace: 'normal' }}>{error.message}</pre>
+		</div>
+	)
 }
 
 function App() {
@@ -58,7 +83,9 @@ function App() {
       <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
       <hr />
       <div className="pokemon-info">
-        <PokemonInfo pokemonName={pokemonName} />
+	  	<ErrorBoundary FallbackComponent={ErrorFallback}>
+			<PokemonInfo pokemonName={pokemonName} />
+	  	</ErrorBoundary>
       </div>
     </div>
   )
